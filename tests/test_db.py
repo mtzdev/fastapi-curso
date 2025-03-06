@@ -1,35 +1,21 @@
-from fastapi.testclient import TestClient
-from fast_zero.app import app
-from fast_zero.models import User, table_registry
-from pytest import fixture
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session
-
-@fixture()
-def client():
-    return TestClient(app)
-
-@fixture()
-def session():
-    engine = create_engine('sqlite:///:memory:')
-    table_registry.metadata.create_all(engine)
-    with Session(engine) as session:
-        yield session
-
-    table_registry.metadata.drop_all(engine)
+from dataclasses import asdict
+from sqlalchemy import select
+from fast_zero.models import User
 
 
-def test_create_user(session):
-    user = User(
-        username='testusername',
-        email='test@email.com',
-        password='password'
-    )
+def test_create_user(session, mock_db_time):
+    with mock_db_time(model=User) as time:
+        new_user = User(username='testusername', password='password', email='teste@gmail.com')
+        session.add(new_user)
+        session.commit()
 
-    session.add(user)
-    session.commit()
+    user = session.scalar(select(User).where(User.username == 'testusername'))
 
-    result = session.scalar(
-        select(User).where(User.email == 'test@email.com')
-    )
-    assert result.username == 'testusername'
+    assert asdict(user) == {
+        'id': 1,
+        'username': 'testusername',
+        'password': 'password',
+        'email': 'teste@gmail.com',
+        'created_at': time,
+        'updated_at': time,
+    }
