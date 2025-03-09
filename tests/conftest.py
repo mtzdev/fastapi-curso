@@ -1,6 +1,7 @@
 
 from contextlib import contextmanager
 from datetime import datetime
+from fast_zero.security import get_password_hash
 from fastapi.testclient import TestClient
 from fast_zero.app import app
 from fast_zero.database import get_session
@@ -32,10 +33,12 @@ def session():
 
 @fixture()
 def user(session: Session):
-    user = User(username="testusername", email="test@gmail.com", password="testpassword")
+    user = User(username="testusername", email="test@gmail.com", password=get_password_hash("testpassword"))
     session.add(user)
     session.commit()
     session.refresh(user)
+
+    user.clean_password = 'testpassword'
     return user
 
 @contextmanager
