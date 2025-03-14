@@ -41,6 +41,11 @@ def user(session: Session):
     user.clean_password = 'testpassword'
     return user
 
+@fixture()
+def token(client, user):
+    response = client.post('/auth/token', data={'username': user.email, 'password': user.clean_password})
+    return response.json()['access_token']
+
 @contextmanager
 def _mock_db_time(*, model, time=datetime(2024, 1, 1)):
     def fake_time_handler(mapper, connection, target):
