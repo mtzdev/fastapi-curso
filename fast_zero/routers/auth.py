@@ -6,11 +6,13 @@ from fast_zero.security import create_access_token, verify_password
 from fast_zero.database import get_session
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from typing import Annotated
 
 router = APIRouter(prefix='/auth', tags=['auth'])
+T_Session = Annotated[Session, Depends(get_session)]
 
 @router.post('/token', response_model=Token)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
+def login(session: T_Session, form_data: OAuth2PasswordRequestForm = Depends()):
     user = session.scalar(select(User).where(User.email == form_data.username))
 
     if not user or not verify_password(form_data.password, user.password):

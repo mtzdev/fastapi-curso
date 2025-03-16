@@ -1,11 +1,11 @@
 from http import HTTPStatus
-from fast_zero.security import create_access_token, SECRET_KEY, ALGORITHM
+from fast_zero.security import create_access_token, settings
 from jwt import decode
 
 def test_jwt():
     payload = {'sub': 'test'}
     result = create_access_token(payload)
-    decoded = decode(result, SECRET_KEY, algorithms=[ALGORITHM])
+    decoded = decode(result, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
 
     assert decoded['sub'] == payload['sub']
     assert decoded['exp']
