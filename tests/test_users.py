@@ -34,18 +34,18 @@ def test_update_user(client, user, token):
             "username": "newusername2",
             "email": "new@email.com",
             "password": "password",
-            "id": 1
+            "id": user.id
     })
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "username": "newusername2",
         "email": "new@email.com",
-        "id": 1
+        "id": user.id
     }
 
-def test_update_wrong_user(client, user, token):
-    response = client.put(f"/users/{user.id + 1}",
+def test_update_wrong_user(client, other_user, token):
+    response = client.put(f"/users/{other_user.id}",
         headers={'Authorization': f'Bearer {token}'},
         json={
             "username": "newusername2",
@@ -71,7 +71,7 @@ def test_delete_wrong_user(client, user, token):
 
 def test_create_user_error_username_duplicated(client, user):
     response = client.post("/users", json={
-        "username": "testusername",
+        "username": user.username,
         "password": "test2password",
         "email": "test2@gmail.com"
     })
@@ -82,7 +82,7 @@ def test_create_user_error_email_duplicated(client, user):
     response = client.post("/users", json={
         "username": "test2username",
         "password": "test2password",
-        "email": "test@gmail.com"
+        "email": user.email
     })
     assert response.status_code == HTTPStatus.BAD_REQUEST
     assert response.json() == {"detail": "Email already exists"}
@@ -102,9 +102,9 @@ def test_get_user(client, user):
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
-        "id": 1,
-        "username": "testusername",
-        "email": "test@gmail.com"
+        "id": user.id,
+        "username": user.username,
+        "email": user.email
     }
 
 def test_get_user_error_not_found(client):

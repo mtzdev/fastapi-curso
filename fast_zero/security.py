@@ -1,14 +1,12 @@
 from datetime import datetime, timedelta
 from http import HTTPStatus
 from zoneinfo import ZoneInfo
-
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jwt import encode, decode
 from jwt.exceptions import PyJWTError
-from sqlalchemy import select
 from pwdlib import PasswordHash
-
+from sqlalchemy import select
 from fast_zero.database import get_session
 from fast_zero.models import User
 from fast_zero.settings import Settings
