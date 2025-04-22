@@ -1,11 +1,12 @@
 from contextlib import contextmanager
 from datetime import datetime
 import factory
+import factory.fuzzy
 from fast_zero.security import get_password_hash
 from fastapi.testclient import TestClient
 from fast_zero.app import app
 from fast_zero.database import get_session
-from fast_zero.models import table_registry, User
+from fast_zero.models import TodoState, table_registry, User, Todo
 from pytest import fixture
 from sqlalchemy import StaticPool, create_engine, event
 from sqlalchemy.orm import Session
@@ -17,6 +18,15 @@ class UserFactory(factory.Factory):
     username = factory.Sequence(lambda n: f'testuser{n}')
     email = factory.LazyAttribute(lambda obj: f'{obj.username}@test.com')
     password = factory.LazyAttribute(lambda obj: f'{obj.username}:password-test  ')
+
+class TodoFactory(factory.Factory):
+    class Meta:
+        model = Todo
+
+    title = factory.Faker('text')
+    description = factory.Faker('text')
+    state = factory.fuzzy.FuzzyChoice(TodoState)
+    user_id = 1
 
 @fixture()
 def client(session):

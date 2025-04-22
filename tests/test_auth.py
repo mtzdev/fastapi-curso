@@ -39,3 +39,24 @@ def test_token_wrong_email(client, user):
     assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {'detail': 'Incorrect email or password'}
 
+
+def test_refresh_token(client, user, token):
+    response = client.post('/auth/refresh-token', headers={'Authorization': f'Bearer {token}'})
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json()['token_type'] == 'Bearer'
+    assert 'access_token' in response.json()
+
+def test_refresh_token_expired(client, user):
+    with freeze_time('2023-01-01 12:00:00'):
+        response = client.post('/auth/token', data={'username': user.email, 'password': user.clean_password})
+
+        assert response.status_code == HTTPStatus.OK
+        token = response.json()['access_token']
+
+    with freeze_time('2023-01-01 12:31:00'):
+        response = client.post('/auth/refresh-token', headers={'Authorization': f'Bearer {token}'})
+
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+        assert response.json() == {'detail': 'Could not validate credentials'}
+
