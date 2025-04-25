@@ -98,3 +98,50 @@ def test_list_todos_filter_combined_should_return_5_todos(session, user, client,
     )
 
     assert len(response.json()['todos']) == expected_todos
+
+def test_delete_todo(session, client, user, token):
+    todo = TodoFactory(user_id=user.id)
+    session.add(todo)
+    session.commit()
+    session.refresh(todo)
+
+    response = client.delete(f'/todos/{todo.id}', headers={'Authorization': f'Bearer {token}'})
+
+    assert response.status_code == 200
+    assert response.json() == {'message': 'Task deleted successfully.'}
+
+def test_delete_todo_error(session, client, user, token):
+    response = client.delete(f'/todos/{10}', headers={'Authorization': f'Bearer {token}'})
+
+    assert response.status_code == 404
+    assert response.json() == {'detail': 'Task not found.'}
+
+def test_patch_todo(session, client, user, token):
+    todo = TodoFactory(user_id=user.id)
+    session.add(todo)
+    session.commit()
+    session.refresh(todo)
+
+    response = client.patch(
+        f'/todos/{todo.id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'title': 'Teste',
+            'description': 'Nova descrição',
+            'state': 'doing'
+        }
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        'id': todo.id,
+        'title': 'Teste',
+        'description': 'Nova descrição',
+        'state': 'doing'
+    }
+
+def test_patch_todo_error(client, token):
+    response = client.patch(f'/todos/{10}', json={}, headers={'Authorization': f'Bearer {token}'})
+
+    assert response.status_code == 404
+    assert response.json() == {'detail': 'Task not found.'}
